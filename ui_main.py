@@ -68,8 +68,7 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tab_2, "")
         self.tabWidget.setTabText(self.tabWidget.count() - 1, "+")
 
-    def init_theater_tab_ui(self):
-        name = self.tableWidget_2.selectedItems()[0].text()
+    def init_theater_tab_ui(self, name):
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
 
