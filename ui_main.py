@@ -13,6 +13,10 @@ class Ui_MainWindow(object):
 
         self.init_search_tab()
 
+        self.new_theater_button = QtWidgets.QPushButton(MainWindow)
+        self.new_theater_button.setGeometry(QtCore.QRect(10, 510, 150, 23))
+        self.new_theater_button.setText('Добавить новый кинотеатр')
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 815, 21))
@@ -22,6 +26,7 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.tabWidget.setCurrentIndex(1)
+
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -75,14 +80,6 @@ class Ui_MainWindow(object):
         self.listWidget = QtWidgets.QListWidget(self.tab)
         self.listWidget.setGeometry(QtCore.QRect(0, 100, 791, 351))
         self.listWidget.setObjectName("listWidget")
-
-        self.criteria_list = QtWidgets.QComboBox(self.tab)
-        self.criteria_list.setGeometry(QtCore.QRect(10, 10, 141, 22))
-        self.criteria_list.setObjectName("criteria_list")
-
-        self.request_field = QtWidgets.QLineEdit(self.tab)
-        self.request_field.setGeometry(QtCore.QRect(170, 10, 171, 20))
-        self.request_field.setObjectName("request_field")
 
         self.tabWidget.insertTab(self.tabWidget.count() - 1, self.tab, "")
         self.tabWidget.setTabText(self.tabWidget.count() - 2, name)

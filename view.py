@@ -1,8 +1,10 @@
-from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QListWidget, QWidget
+from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QListWidget, QWidget, QMessageBox
 from ui_main import Ui_MainWindow
-from ui_session_window import Ui_Form
+import ui_session_window
+import ui_new_theater
 
 import model
+import control
 
 
 class Example(QMainWindow, Ui_MainWindow):
@@ -10,6 +12,7 @@ class Example(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.update_country_list()
+        control.bind_main_logic(self)
 
     def update_country_list(self):
         self.country_box.clear()
@@ -38,15 +41,20 @@ class Example(QMainWindow, Ui_MainWindow):
                 item = QTableWidgetItem(str(label))
                 self.tableWidget_2.setItem(i, j, item)
 
-    def update_sessions_list(self, list_widget, film_names):
-        list_widget.addItems(film_names)
+    def fill_theater_data(self, tab, *args):
+        list_widget = tab.findChild(QListWidget)
+        list_widget.addItems(args[0])
 
     def init_session_window_ui(self, args):
         self.session_window = SessionWindow(args)
         self.session_window.show()
 
+    def open_new_theater_window(self):
+        self.new_theater_window = NewTheaterWindow()
+        self.new_theater_window.show()
 
-class SessionWindow(QWidget, Ui_Form):
+
+class SessionWindow(QWidget, ui_session_window.Ui_Form):
     def __init__(self, args):
         super().__init__()
         self.setupUi(self)
@@ -59,3 +67,55 @@ class SessionWindow(QWidget, Ui_Form):
         self.description_label.setText(str(args[3]))
         self.price_label.setText(str(args[4]))
         self.time_label.setText(str(args[5]))
+
+
+class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.country_input.hide()
+        self.city_input.hide()
+        self.street_input.hide()
+        self.update_country_list()
+        control.bind_new_theater_logic(self)
+
+    def update_country_list(self):
+        self.country_box.clear()
+        self.country_box.addItems(model.get_request('get_countries', ()))
+        self.country_box.addItem("Другое")
+        self.update_cities_list()
+
+    def update_cities_list(self):
+        self.city_box.clear()
+        self.city_box.addItems(model.get_request('get_cities', (self.country_box.currentText(),)))
+        self.city_box.addItem("Другое")
+        self.update_streets_list()
+
+    def update_streets_list(self):
+        self.street_box.clear()
+        self.street_box.addItems(model.get_request('get_streets', (self.city_box.currentText(),)))
+        self.street_box.addItem("Другое")
+
+    def toggle_line_edit(self):
+        if self.country_box.currentText() == "Другое":
+            self.country_input.show()
+        else:
+            self.country_input.hide()
+
+        if self.city_box.currentText() == "Другое":
+            self.city_input.show()
+        else:
+            self.city_input.hide()
+
+        if self.street_box.currentText() == "Другое":
+            self.street_input.show()
+        else:
+            self.street_input.hide()
+
+    def check(self):
+        reply = QMessageBox.question(self, "Внимание", "Сохранить введённые данные?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        return reply == QMessageBox.Yes
+
+    def show_error_message(self, error):
+        self.error_label.setText(f"Возникла ошибка {error}")
