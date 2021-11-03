@@ -78,7 +78,7 @@ class Ui_MainWindow(object):
         self.tab.setObjectName("tab")
 
         self.listWidget = QtWidgets.QListWidget(self.tab)
-        self.listWidget.setGeometry(QtCore.QRect(0, 100, 791, 351))
+        self.listWidget.setGeometry(QtCore.QRect(0, 10, 791, 450))
         self.listWidget.setObjectName("listWidget")
 
         self.tabWidget.insertTab(self.tabWidget.count() - 1, self.tab, "")

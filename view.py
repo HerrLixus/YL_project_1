@@ -1,7 +1,9 @@
 from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QListWidget, QWidget, QMessageBox
+
 from ui_main import Ui_MainWindow
 import ui_session_window
 import ui_new_theater
+import ui_seat_schema
 
 import model
 import control
@@ -41,13 +43,14 @@ class Example(QMainWindow, Ui_MainWindow):
                 item = QTableWidgetItem(str(label))
                 self.tableWidget_2.setItem(i, j, item)
 
-    def fill_theater_data(self, tab, *args):
+    def fill_theater_data(self, tab, args):
         list_widget = tab.findChild(QListWidget)
-        list_widget.addItems(args[0])
+        list_widget.addItems(args)
 
     def init_session_window_ui(self, args):
         self.session_window = SessionWindow(args)
         self.session_window.show()
+        return self.session_window
 
     def open_new_theater_window(self):
         self.new_theater_window = NewTheaterWindow()
@@ -67,6 +70,13 @@ class SessionWindow(QWidget, ui_session_window.Ui_Form):
         self.description_label.setText(str(args[3]))
         self.price_label.setText(str(args[4]))
         self.time_label.setText(str(args[5]))
+
+    def init_seat_schema_window(self, session_id):
+        seat_schema = model.get_request('get_seat_schema', (session_id,))
+        self.seat_window = ui_seat_schema.SeatWidget()
+        self.seat_window.show()
+        self.seat_window.set_buttons_from_template(seat_schema)
+        control.bind_seat_window_logic(self.seat_window)
 
 
 class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):

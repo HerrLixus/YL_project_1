@@ -33,9 +33,14 @@ class Ui_Form(object):
         self.label_6 = QtWidgets.QLabel(Form)
         self.label_6.setGeometry(QtCore.QRect(10, 110, 131, 16))
         self.label_6.setObjectName("label_6")
+
         self.purchase_button = QtWidgets.QPushButton(Form)
         self.purchase_button.setGeometry(QtCore.QRect(384, 580, 111, 23))
         self.purchase_button.setObjectName("purchase_button")
+
+        self.edit_button = QtWidgets.QPushButton(Form)
+        self.edit_button.setGeometry(QtCore.QRect(10, 580, 200, 23))
+        self.edit_button.setText('Редактировать данные о сеансе')
 
         self.name_label = QtWidgets.QLineEdit(Form)
         self.name_label.setReadOnly(True)

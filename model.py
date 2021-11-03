@@ -83,7 +83,9 @@ requests = {
                             from sessions
                             left join films on films.id = sessions.filmId
                             left join genres on genres.id = films.genre
-                            where sessions.id = ?""", 1)
+                            where sessions.id = ?""", 1),
+
+    'get_seat_schema': ("""select seat_schema from sessions where id = ?""", 2)
 }
 
 
