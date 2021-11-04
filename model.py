@@ -17,9 +17,8 @@ class DuplicateName(Exception):
     pass
 
 
-connection = sqlite3.connect('cinema.db')
+connection = sqlite3.connect('cinema.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 cursor = connection.cursor()
-
 
 # 1: fetchone, 2: fetchone[0], 3: fetchall, 4: fetchall[0]
 requests = {
@@ -92,6 +91,7 @@ requests = {
 def get_request(request, args):
     sql_request, data_type = requests[request]
     raw_data = cursor.execute(sql_request, args)
+    result = ''
     try:
         if data_type == 1:
             result = raw_data.fetchone()
@@ -102,13 +102,13 @@ def get_request(request, args):
         elif data_type == 4:
             result = [i[0] for i in raw_data]
     except:
-        result = ''
+        pass
     return result
 
 
 def add_country(name):
-    request =\
-            """insert into countries(name)
+    request = \
+        """insert into countries(name)
                values (?)"""
     cursor.execute(request, (name,))
     connection.commit()
@@ -128,7 +128,14 @@ def add_street(name, city):
     connection.commit()
 
 
-def add_theater(name, country, city, street, building):
+def add_room(number, theater_id, seat_scheme):
+    request = """insert into rooms(number, theaterId, seat_schema)
+                 values (?, ?, ?)"""
+    cursor.execute(request, (number, theater_id, seat_scheme))
+    connection.commit()
+
+
+def add_theater(name, country, city, street, building, room_schemes):
     request = """insert into theaters(name, country, city, street, building)
 values (?, ?, ?, ?, ?)"""
     country_id = get_request('get_country_id', (country,))
@@ -144,6 +151,16 @@ values (?, ?, ?, ?, ?)"""
         add_street(street, city_id)
         street_id = get_request('get_street_id', (street,))
     cursor.execute(request, (name, country_id, city_id, street_id, int(building)))
+    connection.commit()
+    for i, scheme in enumerate(room_schemes):
+        add_room(i + 1, get_request('get_theater_id', (name,)), scheme)
+
+
+def update_seats(session_id, template):
+    request = """update sessions
+                 set seat_schema = ?
+                 where id = ?"""
+    cursor.execute(request, (template, session_id))
     connection.commit()
 
 

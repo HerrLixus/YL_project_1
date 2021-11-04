@@ -1,4 +1,1 @@
-import datetime
-import PyQt5.QtCore
-
-print(PyQt5.QtCore.QDateTime.currentDateTime().toPyDateTime())
+print('1.0'.isdigit())

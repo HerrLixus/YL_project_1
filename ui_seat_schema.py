@@ -1,6 +1,4 @@
 from PyQt5 import QtCore, QtWidgets
-import sys
-import control
 
 
 class SeatWidget(QtWidgets.QWidget):
@@ -11,6 +9,9 @@ class SeatWidget(QtWidgets.QWidget):
 
     def initUi(self):
         self.setGeometry(300, 300, 300, 300)
+        self.save_button = QtWidgets.QPushButton("Сохранить", self)
+        self.save_button.setGeometry(QtCore.QRect(self.width() - 105, self.height() - 30,
+                                                  100, 25))
 
     def set_buttons_from_template(self, template):
         self.buttons = [[self.init_button(j, i, symbol) for j, symbol in enumerate(line)]
@@ -25,6 +26,7 @@ class SeatWidget(QtWidgets.QWidget):
 
         if seat_type == '0':
             button.hide()
+            button.setObjectName('Hidden')
         elif seat_type == 'b':
             button.setStyleSheet('background-color:blue')
             button.setObjectName('Booked')
@@ -38,13 +40,14 @@ class SeatWidget(QtWidgets.QWidget):
     def resize_window(self):
         i, j = len(self.buttons), len(self.buttons[0])
         self.resize(75 + j * 55, 75 + i * 55)
+        self.save_button.setGeometry(QtCore.QRect(self.width() - 105, self.height() - 30,
+                                                  100, 25))
 
 
 class InputSeatWidget(SeatWidget):
     def __init__(self):
         super().__init__()
         self.buttons = [[self.init_button(j, i, '1') for j in range(3)] for i in range(3)]
-        control.bind_generating_template_buttons_logic(self)
 
     def initUi(self):
         super().initUi()
@@ -64,10 +67,3 @@ class InputSeatWidget(SeatWidget):
     def resize_window(self):
         super().resize_window()
         self.move_buttons()
-
-
-if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    ex = InputSeatWidget()
-    ex.show()
-    sys.exit(app.exec())

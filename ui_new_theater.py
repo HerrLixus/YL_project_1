@@ -67,6 +67,9 @@ class Ui_Form(object):
         self.commit_button.setText('Сохранить')
         self.error_label = QtWidgets.QLabel(Form)
         self.error_label.setGeometry(QtCore.QRect(100, 220, 300, 25))
+        self.add_room_button = QtWidgets.QPushButton(Form)
+        self.add_room_button.setGeometry(QtCore.QRect(114, 220, 121, 23))
+        self.add_room_button.setText('Добавить кинозал')
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)

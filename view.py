@@ -71,12 +71,10 @@ class SessionWindow(QWidget, ui_session_window.Ui_Form):
         self.price_label.setText(str(args[4]))
         self.time_label.setText(str(args[5]))
 
-    def init_seat_schema_window(self, session_id):
-        seat_schema = model.get_request('get_seat_schema', (session_id,))
+    def init_seat_schema_window(self):
         self.seat_window = ui_seat_schema.SeatWidget()
         self.seat_window.show()
-        self.seat_window.set_buttons_from_template(seat_schema)
-        control.bind_seat_window_logic(self.seat_window)
+        return self.seat_window
 
 
 class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
@@ -121,6 +119,11 @@ class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
             self.street_input.show()
         else:
             self.street_input.hide()
+
+    def init_new_room_window(self):
+        self.new_room_window = ui_seat_schema.InputSeatWidget()
+        self.new_room_window.show()
+        control.bind_generating_template_buttons_logic(self.new_room_window)
 
     def check(self):
         reply = QMessageBox.question(self, "Внимание", "Сохранить введённые данные?",
