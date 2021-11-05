@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 
 class UnfilledFields(Exception):
@@ -17,19 +18,33 @@ class DuplicateName(Exception):
     pass
 
 
+class IntersectingSessions(Exception):
+    pass
+
+
+class InvalidFilmId(Exception):
+    pass
+
+
+class InvalidRoomId(Exception):
+    pass
+
+
+class NonNumericPrice(Exception):
+    pass
+
+
 connection = sqlite3.connect('cinema.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 cursor = connection.cursor()
 
 # 1: fetchone, 2: fetchone[0], 3: fetchall, 4: fetchall[0]
 requests = {
-    'get_countries': ("""select name from countries
-     where id in (select country from theaters)""", 4),
+    'get_countries': ("""select * from countries
+     where id in (select country from theaters)""", 3),
 
-    'get_cities': ("""select name from cities where countryId =
-     (select id from countries where name = ?)""", 4),
+    'get_cities': ("""select id, name from cities where countryId = ?""", 3),
 
-    'get_streets': ("""select name from streets where cityId = 
-    (select id from cities where name = ?)""", 4),
+    'get_streets': ("""select id, name from streets where cityId = ?""", 3),
 
     'get_country_id': ("""select id from countries where name = ?""", 2),
 
@@ -42,26 +57,30 @@ requests = {
                         countries.name as country,
                         cities.name as city,
                         streets.name as street,
-                        theaters.building
+                        theaters.building,
+                        theaters.id
                         from theaters
                         left join countries on countries.id = theaters.country
                         left join cities on cities.id = theaters.city
                         left join streets on streets.id = theaters.street""", 3),
+
+    'get_all_theater_names': ("""select name from theaters""", 4),
 
     'get_theaters': ("""select
                         theaters.name,
                         countries.name as country,
                         cities.name as city,
                         streets.name as street,
-                        theaters.building
+                        theaters.building,
+                        theaters.id
                         from theaters
                         left join countries on countries.id = theaters.country
                         left join cities on cities.id = theaters.city
                         left join streets on streets.id = theaters.street
                         where
-                        country = (select id from countries where name = ?) and
-                        city = (select id from cities where name = ?) and
-                        street = (select id from streets where name = ?)""", 3),
+                        country = ? and
+                        city = ? and
+                        street = ?""", 3),
 
     'get_theater_id': ("""select id from theaters where name  = ?""", 2),
 
@@ -84,7 +103,47 @@ requests = {
                             left join genres on genres.id = films.genre
                             where sessions.id = ?""", 1),
 
-    'get_seat_schema': ("""select seat_schema from sessions where id = ?""", 2)
+    'get_seat_schema': ("""select seat_schema from sessions where id = ?""", 2),
+
+    'get_film_data': ("""select
+                        films.id,
+                        films.title,
+                        films.year,
+                        genres.title as genre,
+                        films.age_limit,
+                        films.duration,
+                        films.description
+                        from films
+                        left join genres on films.genre = genres.id""", 3),
+
+    'get_film': ("""select
+                        films.id,
+                        films.title,
+                        films.year,
+                        genres.title as genre,
+                        films.age_limit,
+                        films.duration,
+                        films.description
+                        from films
+                        left join genres on films.genre = genres.id
+                        where films.id = ?""", 1),
+
+    'get_rooms_list': ("""select * from rooms where theaterId =
+(select theaterId from rooms where id = (select roomId from sessions where id = ?))""", 3),
+
+    'get_rooms': ("""select * from rooms where theaterId = ?""", 3),
+
+    'get_all_film_durations': ("""select
+films.id as id,
+sessions.time,
+films.duration as duration
+from sessions
+left join films on sessions.filmId = films.id
+where sessions.roomId = ?""", 3),
+
+    'get_film_ids': ("""select id from films""", 4),
+
+    'get_room_ids': ("""select id from rooms""", 4)
 }
 
 
@@ -156,6 +215,29 @@ values (?, ?, ?, ?, ?)"""
         add_room(i + 1, get_request('get_theater_id', (name,)), scheme)
 
 
+def update_theater():
+    pass
+
+
+def add_session(*args):
+    request = """insert into sessions(filmId, roomId, time, ticket_price, seat_schema)
+values (?, ?, ?, ?, (select seat_schema from rooms where id = ?))"""
+    cursor.execute(request, args)
+    connection.commit()
+
+
+def update_session(session_id, *args):
+    request = """update sessions
+set filmId = ?,
+roomId = ?,
+time = ?,
+ticket_price = ?,
+seat_schema = (select seat_schema from rooms where id = roomId)
+where id = ?"""
+    cursor.execute(request, (*args, session_id))
+    connection.commit()
+
+
 def update_seats(session_id, template):
     request = """update sessions
                  set seat_schema = ?
@@ -175,3 +257,33 @@ def approve_theater_record(*args):
     if any([theater[:3] == args[:3] for theater in get_request('get_all_theaters', ())]):
         raise DuplicateName
     return True
+
+
+def approve_session_record(*args):
+    film_id, room_id, ticket_price = args[:3]
+    time = args[3]
+
+    if film_id not in get_request('get_film_ids', ()):
+        raise InvalidFilmId
+    if room_id not in get_request('get_room_ids', ()):
+        raise InvalidRoomId
+    if not ticket_price.isdigit():
+        raise NonNumericPrice
+
+    film_duration = get_request('get_film', (film_id,))[5].time()
+    new_film_start = time
+    new_film_duration_delta = datetime.timedelta(hours=film_duration.hour,
+                                                 minutes=film_duration.minute, seconds=film_duration.second)
+    new_film_end = new_film_start + new_film_duration_delta
+    for film in get_request('get_all_film_durations', (room_id,)):
+        if film[0] == film_id:
+            continue
+        film_start = film[1]
+        duration = film[2].time()
+        duration_delta = datetime.timedelta(hours=duration.hour,
+                                            minutes=duration.minute, seconds=duration.second)
+        film_end = film_start + duration_delta
+        if new_film_start > film_end > new_film_end or\
+            new_film_start > film_start > new_film_end or\
+                (new_film_start > film_start and film_end > new_film_end):
+            raise IntersectingSessions
