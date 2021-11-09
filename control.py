@@ -3,27 +3,66 @@ from PyQt5 import QtWidgets
 import model
 import datetime
 
+theaters = list()
+tabs = list()
+theater_list = None
+film_list = None
+
 
 def init_theater_list(obj):
+    global theater_list
+    theater_list = obj
+
+    fill_theater_list()
+    bind_theater_list_logic(obj)
+
+
+def fill_theater_list():
+    global theaters
     theaters = model.get_request('get_all_theaters', ())
     theaters = sorted(theaters, key=lambda x: x[1:4])
-    obj.update_theaters_list(theaters)
-    obj.tableWidget_2.itemDoubleClicked.connect(lambda: open_theater_tab(obj, theaters))
+    theater_list.update_theaters_list(theaters)
 
+
+def bind_theater_list_logic(obj):
+    obj.tableWidget_2.itemDoubleClicked.connect(lambda: open_theater_tab(obj, theaters))
     obj.new_theater_button.clicked.connect(lambda: init_new_theater(obj))
+    obj.open_film_list_button.clicked.connect(lambda: init_film_list(obj))
+
+
+def init_film_list(obj):
+    global film_list
+    film_list = obj.init_film_list()
+    fill_film_table()
+    film_list.new_film_button.clicked.connect(lambda: init_adding_film(film_list))
+
+
+def fill_film_table():
+    films = model.get_request('get_film_data', ())
+    film_list.setup_table(films)
 
 
 def open_theater_tab(obj, theaters):
     index = obj.tableWidget_2.currentRow()
     name, theater_id = theaters[index][0], theaters[index][5]
-    tab = obj.init_theater_tab_ui(name)
+    tab = obj.init_theater_tab_ui(name, theater_id)
+    tabs.append(tab)
+    obj.tableWidget_2.selectionModel().clearSelection()
+
+    update_sessions_data()
 
     sessions = model.get_request('get_sessions', (theater_id,))
-    film_names = [item[0] for item in sessions]
-    obj.fill_theater_data(tab, film_names)
     list_widget = tab.findChild(QtWidgets.QListWidget)
     list_widget.itemDoubleClicked.connect(lambda: init_session_window(obj, list_widget, sessions))
     obj.add_session_button.clicked.connect(lambda: init_session_add(obj, theater_id))
+
+
+def update_sessions_data():
+    for tab in tabs:
+        theater_id = int(tab.objectName())
+        sessions = model.get_request('get_sessions', (theater_id,))
+        film_names = [item[0] for item in sessions]
+        theater_list.fill_theater_data(tab, film_names)
 
 
 def init_session_window(obj, list_widget, sessions):
@@ -49,14 +88,14 @@ def bind_generating_template_buttons_logic(window):
 
     for row in window.buttons:
         for button in row:
-            button.clicked.connect(lambda: set_no_seat(window))
+            button.clicked.connect(lambda: flick_state(window))
 
 
 def add_row(window):
     row = list()
     for i in range(len(window.buttons[0])):
         new_button = window.init_button(i, len(window.buttons), '1')
-        new_button.clicked.connect(lambda: set_no_seat(new_button))
+        new_button.clicked.connect(lambda: flick_state(new_button))
         row.append(new_button)
     window.buttons.append(row)
     update_generated_window(window)
@@ -73,7 +112,7 @@ def remove_row(window):
 def add_column(window):
     for i, row in enumerate(window.buttons):
         new_button = window.init_button(len(row), i, '1')
-        new_button.clicked.connect(lambda: set_no_seat(new_button))
+        new_button.clicked.connect(lambda: flick_state(new_button))
         row.append(new_button)
     update_generated_window(window)
 
@@ -86,8 +125,11 @@ def remove_column(window):
     update_generated_window(window)
 
 
-def set_no_seat(window):
-    window.sender().setText('X')
+def flick_state(window):
+    if window.sender().text == '':
+        window.sender().setText('X')
+    else:
+        window.sender().setText('')
 
 
 def generate_template(button_list):
@@ -115,27 +157,66 @@ def update_generated_window(window):
     window.resize_window()
 
 
-"""Adding new theater"""
+"""Adding and editing theater"""
+countries, cities, streets, = [None] * 3
 room_schemes = list()
 
 
 def init_new_theater(obj):
     new_theater_window = obj.open_new_theater_window()
     bind_new_theater_logic(new_theater_window)
+    update_countries(new_theater_window)
 
 
 def bind_new_theater_logic(obj):
-    obj.country_box.currentTextChanged.connect(obj.update_cities_list)
+    obj.country_box.currentTextChanged.connect(lambda: update_cities(obj))
+    obj.city_box.currentTextChanged.connect(lambda: update_streets(obj))
+
     obj.country_box.currentTextChanged.connect(obj.toggle_line_edit)
-
-    obj.city_box.currentTextChanged.connect(obj.update_streets_list)
     obj.city_box.currentTextChanged.connect(obj.toggle_line_edit)
-
     obj.street_box.currentTextChanged.connect(obj.toggle_line_edit)
 
     obj.add_room_button.clicked.connect(obj.init_new_room_window)
-
     obj.commit_button.clicked.connect(lambda: try_to_save_theater(obj))
+
+
+def update_countries(obj):
+    global countries
+    countries = model.get_request('get_countries', ())
+    names = [country[1] for country in countries]
+    obj.update_country_list(names)
+
+    update_cities(obj)
+
+
+def update_cities(obj):
+    global cities
+    country_box = obj.country_box
+    index = country_box.currentIndex()
+    names = []
+    try:
+        country_id = countries[index][0]
+        cities = model.get_request('get_cities', (country_id,))
+        names = [city[1] for city in cities]
+    except IndexError:
+        cities = []
+    obj.update_cities_list(names)
+
+    update_streets(obj)
+
+
+def update_streets(obj):
+    global streets
+    city_box = obj.city_box
+    index = city_box.currentIndex()
+    names = []
+    try:
+        city_id = cities[index][0]
+        streets = model.get_request('get_streets', (city_id,))
+        names = [street[1] for street in streets]
+    except IndexError:
+        streets = []
+    obj.update_streets_list(names)
 
 
 def try_to_save_theater(widget):
@@ -152,9 +233,39 @@ def try_to_save_theater(widget):
         model.approve_theater_record(name, country, city, street, building)
         if widget.check():
             model.add_theater(name, country, city, street, building, room_schemes)
+            fill_theater_list()
             widget.close()
     except Exception as exception:
         widget.show_error_message(type(exception).__name__)
+
+
+"""Adding films"""
+
+
+def init_adding_film(obj):
+    new_film_window = obj.open_new_film_window()
+    genres = model.get_request('get_genres', ())
+    titles = [i[1] for i in genres]
+    new_film_window.setup_genres_list(titles)
+    new_film_window.save_button.clicked.connect(lambda: try_to_save_film(new_film_window, genres))
+
+
+def try_to_save_film(window, genres):
+    title = window.title_input.text()
+    year = window.year_input.text()
+    genre = genres[window.genre_input.currentIndex()][0]
+    age_limit = window.age_limit_input.text()
+    duration = window.time_input.time().toPyTime()
+    description = window.description_input.toPlainText()
+
+    try:
+        model.approve_film_record(title, year, genre, age_limit, duration, description)
+        if window.check():
+            model.add_film(title, year, genre, age_limit, duration, description)
+            fill_film_table()
+            window.close()
+    except Exception as exception:
+        window.show_error_message(type(exception).__name__)
 
 
 """Editing and adding sessions"""
@@ -241,6 +352,7 @@ def try_to_save_new_session():
         if session_edit_window.check():
             model.add_session(film_id, room_id,
                               session_edit_window.time_input.dateTime().toPyDateTime(), ticket_price, room_id)
+            update_sessions_data()
             session_edit_window.close()
     except Exception as exception:
         session_edit_window.show_error_message(type(exception).__name__)
@@ -255,6 +367,7 @@ def try_to_save_session_data(session_window, session_id):
             model.update_session(session_id, film_id, room_id,
                                  session_edit_window.time_input.dateTime().toPyDateTime(), ticket_price)
             session_edit_window.close()
+            update_sessions_data()
             session_window.close()
     except Exception as exception:
         session_edit_window.show_error_message(type(exception).__name__)

@@ -58,6 +58,17 @@ class InputSeatWidget(SeatWidget):
 
         self.move_buttons()
 
+    def init_button(self, i, j, seat_type):
+        button = QtWidgets.QPushButton(self)
+        button.move(10 + i * 55, 10 + j * 55)
+        button.resize(50, 50)
+        button.show()
+
+        if seat_type == '0':
+            button.setText('X')
+            button.setObjectName('Hidden')
+        return button
+
     def move_buttons(self):
         self.add_row.setGeometry(QtCore.QRect(35, self.height() - 30, 25, 25))
         self.remove_row.setGeometry(QtCore.QRect(5, self.height() - 30, 25, 25))

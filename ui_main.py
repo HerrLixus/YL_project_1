@@ -17,6 +17,10 @@ class Ui_MainWindow(object):
         self.new_theater_button.setGeometry(QtCore.QRect(10, 510, 150, 23))
         self.new_theater_button.setText('Добавить новый кинотеатр')
 
+        self.open_film_list_button = QtWidgets.QPushButton(MainWindow)
+        self.open_film_list_button.setGeometry(QtCore.QRect(200, 510, 150, 25))
+        self.open_film_list_button.setText('Открыть список фильмов')
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 815, 21))
@@ -26,7 +30,6 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.tabWidget.setCurrentIndex(1)
-
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -43,9 +46,9 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tab_2, "")
         self.tabWidget.setTabText(self.tabWidget.count() - 1, "+")
 
-    def init_theater_tab_ui(self, name):
+    def init_theater_tab_ui(self, name, theater_id):
         self.tab = QtWidgets.QWidget()
-        self.tab.setObjectName("tab")
+        self.tab.setObjectName(str(theater_id))
 
         self.listWidget = QtWidgets.QListWidget(self.tab)
         self.listWidget.setGeometry(QtCore.QRect(0, 10, 791, 400))

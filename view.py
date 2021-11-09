@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QListWidget, \
-    QWidget, QMessageBox
+    QWidget, QMessageBox, QPushButton
 
 import control
-import model
 
 import ui_main
+import ui_new_film
 import ui_new_theater
 import ui_seat_schema
 import ui_session_window
@@ -19,6 +19,7 @@ class MainWindow(QMainWindow, ui_main.Ui_MainWindow):
         self.setupUi(self)
 
     def update_theaters_list(self, theaters):
+        self.tableWidget_2.clearContents()
         self.tableWidget_2.setColumnCount(5)
         self.tableWidget_2.setHorizontalHeaderLabels(["Название", "Страна", "Город", "Улица", "Здание"])
         self.tableWidget_2.setRowCount(len(theaters))
@@ -31,6 +32,7 @@ class MainWindow(QMainWindow, ui_main.Ui_MainWindow):
 
     def fill_theater_data(self, tab, args):
         list_widget = tab.findChild(QListWidget)
+        list_widget.clear()
         list_widget.addItems(args)
 
     def init_session_window_ui(self, args):
@@ -47,6 +49,21 @@ class MainWindow(QMainWindow, ui_main.Ui_MainWindow):
         self.edit_window = EditSessionWindow()
         self.edit_window.show()
         return self.edit_window
+
+    def init_film_list(self):
+        self.film_list = FilmListWindow()
+        self.film_list.show()
+        return self.film_list
+
+    def closeEvent(self, event):
+        if hasattr(self, 'session_window'):
+            self.session_window.close()
+        if hasattr(self, 'new_theater_window'):
+            self.new_theater_window.close()
+        if hasattr(self, 'edit_window'):
+            self.edit_window.close()
+        if hasattr(self, 'film_list'):
+            self.film_list.close()
 
 
 class SessionWindow(QWidget, ui_session_window.Ui_Form):
@@ -73,6 +90,12 @@ class SessionWindow(QWidget, ui_session_window.Ui_Form):
         self.edit_window = EditSessionWindow()
         self.edit_window.show()
         return self.edit_window
+
+    def closeEvent(self, event):
+        if hasattr(self, 'seat_window'):
+            self.seat_window.close()
+        if hasattr(self, 'edit_window'):
+            self.edit_window.close()
 
 
 class EditSessionWindow(QWidget, ui_session_edit.Ui_Form):
@@ -104,6 +127,12 @@ class EditSessionWindow(QWidget, ui_session_edit.Ui_Form):
     def show_error_message(self, error):
         self.error_output.setText(f"Возникла ошибка {error}")
 
+    def closeEvent(self, event):
+        if hasattr(self, 'film_choice_window'):
+            self.film_choice_window.close()
+        if hasattr(self, 'room_choice_window'):
+            self.room_choice_window.close()
+
 
 class FilmChoiceWindow(QWidget, ui_film_choice.Ui_Form):
     def __init__(self):
@@ -111,6 +140,7 @@ class FilmChoiceWindow(QWidget, ui_film_choice.Ui_Form):
         self.setupUi(self)
 
     def setup_table(self, table):
+        self.tableWidget.clearContents()
         self.tableWidget.setColumnCount(6)
         self.tableWidget.setRowCount(len(table))
         self.tableWidget.setHorizontalHeaderLabels(['Название', "Год выпуска",
@@ -142,6 +172,28 @@ class RoomChoiceWindow(QWidget, ui_room_choice.Ui_Form):
         self.room_show_window.save_button.hide()
         self.room_show_window.show()
 
+    def closeEvent(self, event):
+        if hasattr(self, 'room_show_window'):
+            self.room_show_window.close()
+
+
+class FilmListWindow(FilmChoiceWindow):
+    def setupUi(self, Form):
+        super().setupUi(Form)
+        Form.resize(700, 400)
+        self.new_film_button = QPushButton(Form)
+        self.new_film_button.setGeometry(10, 360, 150, 25)
+        self.new_film_button.setText('Добавить новый фильм')
+
+    def open_new_film_window(self):
+        self.new_film_window = NewFilmWindow()
+        self.new_film_window.show()
+        return self.new_film_window
+
+    def closeEvent(self, event):
+        if hasattr(self, 'new_film_window'):
+            self.new_film_window.close()
+
 
 class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
     def __init__(self):
@@ -150,25 +202,24 @@ class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
         self.country_input.hide()
         self.city_input.hide()
         self.street_input.hide()
-        self.update_country_list()
-        control.bind_new_theater_logic(self)
 
-    def update_country_list(self):
+    def update_country_list(self, countries):
         self.country_box.clear()
-        self.country_box.addItems(model.get_request('get_countries', ()))
+        self.country_box.addItems(countries)
         self.country_box.addItem("Другое")
-        self.update_cities_list()
+        return self.country_box
 
-    def update_cities_list(self):
+    def update_cities_list(self, cities):
         self.city_box.clear()
-        self.city_box.addItems(model.get_request('get_cities', (self.country_box.currentText(),)))
+        self.city_box.addItems(cities)
         self.city_box.addItem("Другое")
-        self.update_streets_list()
+        return self.city_box
 
-    def update_streets_list(self):
+    def update_streets_list(self, streets):
         self.street_box.clear()
-        self.street_box.addItems(model.get_request('get_streets', (self.city_box.currentText(),)))
+        self.street_box.addItems(streets)
         self.street_box.addItem("Другое")
+        return self.street_box
 
     def toggle_line_edit(self):
         if self.country_box.currentText() == "Другое":
@@ -191,6 +242,11 @@ class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
         self.new_room_window.show()
         control.bind_generating_template_buttons_logic(self.new_room_window)
 
+    def init_room_list_window(self):
+        self.room_list_window = RoomChoiceWindow()
+        self.room_list_window.show()
+        return self.room_list_window
+
     def check(self):
         reply = QMessageBox.question(self, "Внимание", "Сохранить введённые данные?",
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -198,3 +254,27 @@ class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
 
     def show_error_message(self, error):
         self.error_label.setText(f"Возникла ошибка {error}")
+
+    def closeEvent(self, event):
+        if hasattr(self, 'new_room_window'):
+            self.new_room_window.close()
+        if hasattr(self, 'room_list_window'):
+            self.room_list_window.close()
+
+
+class NewFilmWindow(QWidget, ui_new_film.Ui_Form):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+    def setup_genres_list(self, names):
+        self.genre_input.clear()
+        self.genre_input.addItems(names)
+
+    def check(self):
+        reply = QMessageBox.question(self, "Внимание", "Сохранить введённые данные?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        return reply == QMessageBox.Yes
+
+    def show_error_message(self, text):
+        self.error_label.setText(f"Возникла ошибка {text}")

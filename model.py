@@ -34,6 +34,30 @@ class NonNumericPrice(Exception):
     pass
 
 
+class ZeroTime(Exception):
+    pass
+
+
+class InvalidGenre(Exception):
+    pass
+
+
+class NonNumericAgeLimit(Exception):
+    pass
+
+
+class NonNumericYear(Exception):
+    pass
+
+
+class InvalidYear(Exception):
+    pass
+
+
+class DuplicateFilm(Exception):
+    pass
+
+
 connection = sqlite3.connect('cinema.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 cursor = connection.cursor()
 
@@ -51,6 +75,8 @@ requests = {
     'get_city_id': ("""select id from cities where name = ?""", 2),
 
     'get_street_id': ("""select id from streets where name = ?""", 2),
+
+    'get_genres': ("""select * from genres""", 3),
 
     'get_all_theaters': ("""select
                         theaters.name,
@@ -93,7 +119,7 @@ requests = {
 
     'get_session_info': ("""select
                             films.title as film,
-                            genres.title as genre,
+                            `genres`.title as genre,
                             films.age_limit,
                             films.description as description,
                             ticket_price,
@@ -127,6 +153,8 @@ requests = {
                         from films
                         left join genres on films.genre = genres.id
                         where films.id = ?""", 1),
+
+    'get_films': ("""select title, year, genre, age_limit, duration, description from films""", 3),
 
     'get_rooms_list': ("""select * from rooms where theaterId =
 (select theaterId from rooms where id = (select roomId from sessions where id = ?))""", 3),
@@ -215,14 +243,25 @@ values (?, ?, ?, ?, ?)"""
         add_room(i + 1, get_request('get_theater_id', (name,)), scheme)
 
 
-def update_theater():
-    pass
-
-
 def add_session(*args):
     request = """insert into sessions(filmId, roomId, time, ticket_price, seat_schema)
 values (?, ?, ?, ?, (select seat_schema from rooms where id = ?))"""
     cursor.execute(request, args)
+    connection.commit()
+
+
+def add_film(*args):
+    name, year, genre, age_limit, time, description = args
+    year = int(year)
+    if age_limit.endswith('+'):
+        age_limit = int(age_limit[:-1])
+    else:
+        age_limit = int(age_limit)
+    duration = datetime.datetime.combine(datetime.datetime(2000, 1, 1), time)
+
+    request = """insert into films(title, year, genre, age_limit, duration, description)
+values (?, ?, ?, ?, ?, ?)"""
+    cursor.execute(request, (name, year, genre, age_limit, duration, description))
     connection.commit()
 
 
@@ -287,3 +326,22 @@ def approve_session_record(*args):
             new_film_start > film_start > new_film_end or\
                 (new_film_start > film_start and film_end > new_film_end):
             raise IntersectingSessions
+
+
+def approve_film_record(name, year, genre, age_limit, time, description):
+    if any([i == '' for i in [name, year, age_limit, description]]):
+        raise UnfilledFields
+    if time == datetime.time(0, 0):
+        raise ZeroTime
+    if not year.isdigit():
+        raise NonNumericYear
+    if not 0 < int(year) < datetime.datetime.now().year:
+        raise InvalidYear
+    if genre not in [i[0] for i in get_request('get_genres', ())]:
+        raise InvalidGenre
+    if age_limit.endswith('+'):
+        if not age_limit[:-1].isdigit():
+            raise NonNumericAgeLimit
+    else:
+        if not age_limit.isdigit():
+            raise NonNumericAgeLimit
