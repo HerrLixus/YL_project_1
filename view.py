@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QListWidget, \
     QWidget, QMessageBox, QPushButton
+from PyQt5.QtCore import Qt
 
 import control
 
@@ -54,6 +55,12 @@ class MainWindow(QMainWindow, ui_main.Ui_MainWindow):
         self.film_list = FilmListWindow()
         self.film_list.show()
         return self.film_list
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key_Delete:
+            model = self.tableWidget_2.selectionModel()
+            indexes = [i.row() for i in model.selectedRows()]
+            control.delete_theaters(indexes)
 
     def closeEvent(self, event):
         if hasattr(self, 'session_window'):
@@ -189,6 +196,12 @@ class FilmListWindow(FilmChoiceWindow):
         self.new_film_window = NewFilmWindow()
         self.new_film_window.show()
         return self.new_film_window
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key_Delete:
+            model = self.tableWidget.selectionModel()
+            indexes = [i.row() for i in model.selectedRows()]
+            control.delete_films(indexes)
 
     def closeEvent(self, event):
         if hasattr(self, 'new_film_window'):

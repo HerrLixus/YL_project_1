@@ -58,9 +58,14 @@ class DuplicateFilm(Exception):
     pass
 
 
-connection = sqlite3.connect('cinema.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-cursor = connection.cursor()
+def connect():
+    connection = sqlite3.connect('cinema.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+    connection.execute("PRAGMA foreign_keys = ON")
+    return connection
 
+
+connection = connect()
+cursor = connection.cursor()
 # 1: fetchone, 2: fetchone[0], 3: fetchall, 4: fetchall[0]
 requests = {
     'get_countries': ("""select * from countries
@@ -282,6 +287,24 @@ def update_seats(session_id, template):
                  set seat_schema = ?
                  where id = ?"""
     cursor.execute(request, (template, session_id))
+    connection.commit()
+
+
+def delete_theater(theater_id):
+    request = """delete from theaters where id = ?"""
+    cursor.execute(request, (theater_id,))
+    connection.commit()
+
+
+def delete_film(film_id):
+    request = """delete from films where id = ?"""
+    cursor.execute(request, (film_id,))
+    connection.commit()
+
+
+def delete_session(session_id):
+    request = """delete from sessions where id = ?"""
+    cursor.execute(request, (session_id,))
     connection.commit()
 
 

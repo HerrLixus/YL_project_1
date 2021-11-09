@@ -42,6 +42,10 @@ class Ui_Form(object):
         self.edit_button.setGeometry(QtCore.QRect(10, 580, 200, 23))
         self.edit_button.setText('Редактировать данные о сеансе')
 
+        self.delete_button = QtWidgets.QPushButton(Form)
+        self.delete_button.setGeometry(QtCore.QRect(264, 580, 101, 23))
+        self.delete_button.setText('Удалить сеанс')
+
         self.name_label = QtWidgets.QLineEdit(Form)
         self.name_label.setReadOnly(True)
         self.name_label.setGeometry(QtCore.QRect(190, 20, 301, 16))

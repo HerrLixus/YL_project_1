@@ -1,12 +1,21 @@
 # Do all the logic here
 from PyQt5 import QtWidgets
+
 import model
 import datetime
 
 theaters = list()
 tabs = list()
+films = list()
 theater_list = None
 film_list = None
+
+
+def check_delete():
+    reply = QtWidgets.QMessageBox.question(theater_list, "Внимание", "Удалить выделенные данные?",
+                                           QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                           QtWidgets.QMessageBox.No)
+    return reply == QtWidgets.QMessageBox.Yes
 
 
 def init_theater_list(obj):
@@ -38,6 +47,7 @@ def init_film_list(obj):
 
 
 def fill_film_table():
+    global films
     films = model.get_request('get_film_data', ())
     film_list.setup_table(films)
 
@@ -73,6 +83,7 @@ def init_session_window(obj, list_widget, sessions):
     session_window.purchase_button.clicked.connect(
         lambda: init_purchase_window(session_window, session_id))
     session_window.edit_button.clicked.connect(lambda: init_session_edit(session_window, session_id))
+    session_window.delete_button.clicked.connect(lambda: delete_session(session_window, session_id))
 
 
 """Generating seats template"""
@@ -126,7 +137,7 @@ def remove_column(window):
 
 
 def flick_state(window):
-    if window.sender().text == '':
+    if window.sender().text() == '':
         window.sender().setText('X')
     else:
         window.sender().setText('')
@@ -157,7 +168,7 @@ def update_generated_window(window):
     window.resize_window()
 
 
-"""Adding and editing theater"""
+"""Adding and deleting theater"""
 countries, cities, streets, = [None] * 3
 room_schemes = list()
 
@@ -220,6 +231,7 @@ def update_streets(obj):
 
 
 def try_to_save_theater(widget):
+    global theaters
     name = widget.name_input.text()
     country = widget.country_box.currentText() if widget.country_box.currentText() != "Другое" \
         else widget.country_input.text()
@@ -233,13 +245,22 @@ def try_to_save_theater(widget):
         model.approve_theater_record(name, country, city, street, building)
         if widget.check():
             model.add_theater(name, country, city, street, building, room_schemes)
+            theaters = model.get_request('get_all_theaters', ())
             fill_theater_list()
             widget.close()
     except Exception as exception:
         widget.show_error_message(type(exception).__name__)
 
 
-"""Adding films"""
+def delete_theaters(indexes):
+    if check_delete():
+        for index in indexes:
+            theater_id = theaters[index][5]
+            model.delete_theater(theater_id)
+    fill_theater_list()
+
+
+"""Adding and deleting films"""
 
 
 def init_adding_film(obj):
@@ -250,7 +271,16 @@ def init_adding_film(obj):
     new_film_window.save_button.clicked.connect(lambda: try_to_save_film(new_film_window, genres))
 
 
+def delete_films(indexes):
+    if check_delete():
+        for index in indexes:
+            film_id = films[index][0]
+            model.delete_film(film_id)
+    fill_film_table()
+
+
 def try_to_save_film(window, genres):
+    global films
     title = window.title_input.text()
     year = window.year_input.text()
     genre = genres[window.genre_input.currentIndex()][0]
@@ -268,7 +298,7 @@ def try_to_save_film(window, genres):
         window.show_error_message(type(exception).__name__)
 
 
-"""Editing and adding sessions"""
+"""Editing, adding adn deleting sessions"""
 session_edit_window = None
 film_id, room_id, time, ticket_price = [None] * 4
 film_name, room_number = '', 0
@@ -362,7 +392,7 @@ def try_to_save_session_data(session_window, session_id):
     ticket_price = session_edit_window.price_input.text()
     try:
         model.approve_session_record(film_id, room_id, ticket_price,
-                                 session_edit_window.time_input.dateTime().toPyDateTime())
+                                     session_edit_window.time_input.dateTime().toPyDateTime())
         if session_edit_window.check():
             model.update_session(session_id, film_id, room_id,
                                  session_edit_window.time_input.dateTime().toPyDateTime(), ticket_price)
@@ -371,6 +401,13 @@ def try_to_save_session_data(session_window, session_id):
             session_window.close()
     except Exception as exception:
         session_edit_window.show_error_message(type(exception).__name__)
+
+
+def delete_session(session_window, session_id):
+    if check_delete():
+        model.delete_session(session_id)
+        session_window.close()
+    update_sessions_data()
 
 
 """Buying tickets logic"""
