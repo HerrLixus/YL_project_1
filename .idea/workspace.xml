@@ -3,10 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="45efcfa1-5ec0-4c82-a27b-1a680425a1a9" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cinema.db" beforeDir="false" afterPath="$PROJECT_DIR$/cinema.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/control.py" beforeDir="false" afterPath="$PROJECT_DIR$/control.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui_session_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui_session_window.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/view.py" beforeDir="false" afterPath="$PROJECT_DIR$/view.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -172,22 +170,22 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="739" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1635340714570" />
-    <state width="1899" height="281" key="GridCell.Tab.0.bottom" timestamp="1636479319133">
+    <state width="1899" height="281" key="GridCell.Tab.0.bottom" timestamp="1636481199636">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="281" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1636479319133" />
-    <state width="1899" height="281" key="GridCell.Tab.0.center" timestamp="1636479319133">
+    <state width="1899" height="281" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1636481199636" />
+    <state width="1899" height="281" key="GridCell.Tab.0.center" timestamp="1636481199636">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="281" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1636479319133" />
-    <state width="1899" height="281" key="GridCell.Tab.0.left" timestamp="1636479319133">
+    <state width="1899" height="281" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1636481199636" />
+    <state width="1899" height="281" key="GridCell.Tab.0.left" timestamp="1636481199636">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="281" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1636479319133" />
-    <state width="1899" height="281" key="GridCell.Tab.0.right" timestamp="1636479319133">
+    <state width="1899" height="281" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1636481199636" />
+    <state width="1899" height="281" key="GridCell.Tab.0.right" timestamp="1636481199636">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="281" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1636479319133" />
+    <state width="1899" height="281" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1636481199636" />
     <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1635602933843">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -204,10 +202,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1635602933843" />
-    <state x="803" y="162" key="SettingsEditor" timestamp="1635428051706">
+    <state x="803" y="162" key="SettingsEditor" timestamp="1636481195876">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="803" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1635428051706" />
+    <state x="803" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1636481195876" />
     <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1636467049572">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

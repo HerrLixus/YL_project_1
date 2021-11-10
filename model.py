@@ -198,6 +198,9 @@ def get_request(request, args):
     return result
 
 
+"""add new data"""
+
+
 def add_country(name):
     request = \
         """insert into countries(name)
@@ -270,6 +273,9 @@ values (?, ?, ?, ?, ?, ?)"""
     connection.commit()
 
 
+"""change existing data"""
+
+
 def update_session(session_id, *args):
     request = """update sessions
 set filmId = ?,
@@ -290,6 +296,9 @@ def update_seats(session_id, template):
     connection.commit()
 
 
+"""delete existing records"""
+
+
 def delete_theater(theater_id):
     request = """delete from theaters where id = ?"""
     cursor.execute(request, (theater_id,))
@@ -306,6 +315,9 @@ def delete_session(session_id):
     request = """delete from sessions where id = ?"""
     cursor.execute(request, (session_id,))
     connection.commit()
+
+
+"""check if all the given data is correct"""
 
 
 def approve_theater_record(*args):

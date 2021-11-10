@@ -19,6 +19,7 @@ class MainWindow(QMainWindow, ui_main.Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+    # fill table with given theater data
     def update_theaters_list(self, theaters):
         self.tableWidget_2.clearContents()
         self.tableWidget_2.setColumnCount(5)
@@ -31,37 +32,44 @@ class MainWindow(QMainWindow, ui_main.Ui_MainWindow):
                 item = QTableWidgetItem(str(label))
                 self.tableWidget_2.setItem(i, j, item)
 
+    # fill tab with sessions info
     def fill_theater_data(self, tab, args):
         list_widget = tab.findChild(QListWidget)
         list_widget.clear()
         list_widget.addItems(args)
 
+    # open session form
     def init_session_window_ui(self, args):
         self.session_window = SessionWindow(args)
         self.session_window.show()
         return self.session_window
 
+    # open adding theater form
     def open_new_theater_window(self):
         self.new_theater_window = NewTheaterWindow()
         self.new_theater_window.show()
         return self.new_theater_window
 
+    # open adding session form
     def init_new_session_window_ui(self):
         self.edit_window = EditSessionWindow()
         self.edit_window.show()
         return self.edit_window
 
+    # open film list form
     def init_film_list(self):
         self.film_list = FilmListWindow()
         self.film_list.show()
         return self.film_list
 
+    # call delete method
     def keyPressEvent(self, event) -> None:
         if event.key() == Qt.Key_Delete:
             model = self.tableWidget_2.selectionModel()
             indexes = [i.row() for i in model.selectedRows()]
             control.delete_theaters(indexes)
 
+    # close all child windows
     def closeEvent(self, event):
         if hasattr(self, 'session_window'):
             self.session_window.close()
@@ -80,6 +88,7 @@ class SessionWindow(QWidget, ui_session_window.Ui_Form):
         self.args = args
         self.fill_data(args)
 
+    # fill form with given data
     def fill_data(self, args):
         self.name_label.setText(str(args[0]))
         self.genre_label.setText(str(args[1]))
@@ -88,16 +97,19 @@ class SessionWindow(QWidget, ui_session_window.Ui_Form):
         self.price_label.setText(str(args[4]))
         self.time_label.setText(str(args[5]))
 
+    # open purchase form
     def init_seat_schema_window(self):
         self.seat_window = ui_seat_schema.SeatWidget()
         self.seat_window.show()
         return self.seat_window
 
+    # open edit form
     def init_edit_window_ui(self):
         self.edit_window = EditSessionWindow()
         self.edit_window.show()
         return self.edit_window
 
+    # close all child windows
     def closeEvent(self, event):
         if hasattr(self, 'seat_window'):
             self.seat_window.close()
@@ -110,30 +122,36 @@ class EditSessionWindow(QWidget, ui_session_edit.Ui_Form):
         super(EditSessionWindow, self).__init__()
         self.setupUi(self)
 
+    # fill form with given data
     def fill_data(self, *args):
         self.film_name.setText(str(args[0]))
         self.room_name.setText(str(args[1]))
         self.price_input.setText(str(args[2]))
         self.time_input.setDateTime(args[3])
 
+    # open film choice form
     def init_film_choice_window(self):
         self.film_choice_window = FilmChoiceWindow()
         self.film_choice_window.show()
         return self.film_choice_window
 
+    # open room choice form
     def init_room_choice_window(self):
         self.room_choice_window = RoomChoiceWindow()
         self.room_choice_window.show()
         return self.room_choice_window
 
+    # ask from approving changes save
     def check(self):
         reply = QMessageBox.question(self, "Внимание", "Сохранить введённые данные?",
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         return reply == QMessageBox.Yes
 
+    # displaying message if something goes wrong
     def show_error_message(self, error):
         self.error_output.setText(f"Возникла ошибка {error}")
 
+    # close all child windows
     def closeEvent(self, event):
         if hasattr(self, 'film_choice_window'):
             self.film_choice_window.close()
@@ -146,6 +164,7 @@ class FilmChoiceWindow(QWidget, ui_film_choice.Ui_Form):
         super().__init__()
         self.setupUi(self)
 
+    # fill films list
     def setup_table(self, table):
         self.tableWidget.clearContents()
         self.tableWidget.setColumnCount(6)
@@ -168,17 +187,20 @@ class RoomChoiceWindow(QWidget, ui_room_choice.Ui_Form):
         super().__init__()
         self.setupUi(self)
 
+    # fill rooms list
     def setup_list(self, rooms):
         for room in rooms:
             self.listWidget.addItem(str(room))
         return self.listWidget
 
+    # open room showcase form
     def show_room(self, template):
         self.room_show_window = ui_seat_schema.SeatWidget()
         self.room_show_window.set_buttons_from_template(template)
         self.room_show_window.save_button.hide()
         self.room_show_window.show()
 
+    # close all child windows
     def closeEvent(self, event):
         if hasattr(self, 'room_show_window'):
             self.room_show_window.close()
@@ -216,6 +238,7 @@ class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
         self.city_input.hide()
         self.street_input.hide()
 
+    # refresh country, city and street data
     def update_country_list(self, countries):
         self.country_box.clear()
         self.country_box.addItems(countries)
@@ -234,6 +257,7 @@ class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
         self.street_box.addItem("Другое")
         return self.street_box
 
+    # hied and show name inputs
     def toggle_line_edit(self):
         if self.country_box.currentText() == "Другое":
             self.country_input.show()
@@ -250,24 +274,29 @@ class NewTheaterWindow(QWidget, ui_new_theater.Ui_Form):
         else:
             self.street_input.hide()
 
+    # open creating room form
     def init_new_room_window(self):
         self.new_room_window = ui_seat_schema.InputSeatWidget()
         self.new_room_window.show()
         control.bind_generating_template_buttons_logic(self.new_room_window)
 
+    # open room list form
     def init_room_list_window(self):
         self.room_list_window = RoomChoiceWindow()
         self.room_list_window.show()
         return self.room_list_window
 
+    # ask for approve
     def check(self):
         reply = QMessageBox.question(self, "Внимание", "Сохранить введённые данные?",
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         return reply == QMessageBox.Yes
 
+    # show message if something goes wrong
     def show_error_message(self, error):
         self.error_label.setText(f"Возникла ошибка {error}")
 
+    # close all child windows
     def closeEvent(self, event):
         if hasattr(self, 'new_room_window'):
             self.new_room_window.close()
@@ -280,14 +309,17 @@ class NewFilmWindow(QWidget, ui_new_film.Ui_Form):
         super().__init__()
         self.setupUi(self)
 
+    # fill choice field with genre names
     def setup_genres_list(self, names):
         self.genre_input.clear()
         self.genre_input.addItems(names)
 
+    # asking to approve saving data
     def check(self):
         reply = QMessageBox.question(self, "Внимание", "Сохранить введённые данные?",
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         return reply == QMessageBox.Yes
 
+    # display message if something goes wrong
     def show_error_message(self, text):
         self.error_label.setText(f"Возникла ошибка {text}")

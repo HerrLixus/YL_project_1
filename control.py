@@ -1,9 +1,8 @@
-# Do all the logic here
 from PyQt5 import QtWidgets
-
 import model
 import datetime
 
+# initializing some global variables
 theaters = list()
 tabs = list()
 films = list()
@@ -11,6 +10,7 @@ theater_list = None
 film_list = None
 
 
+# dialog window asking for approving deleting
 def check_delete():
     reply = QtWidgets.QMessageBox.question(theater_list, "Внимание", "Удалить выделенные данные?",
                                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
@@ -18,6 +18,7 @@ def check_delete():
     return reply == QtWidgets.QMessageBox.Yes
 
 
+# initializing main window
 def init_theater_list(obj):
     global theater_list
     theater_list = obj
@@ -26,6 +27,7 @@ def init_theater_list(obj):
     bind_theater_list_logic(obj)
 
 
+# getting and displaying theater list
 def fill_theater_list():
     global theaters
     theaters = model.get_request('get_all_theaters', ())
@@ -33,12 +35,14 @@ def fill_theater_list():
     theater_list.update_theaters_list(theaters)
 
 
+# binding buttons to functions
 def bind_theater_list_logic(obj):
     obj.tableWidget_2.itemDoubleClicked.connect(lambda: open_theater_tab(obj, theaters))
     obj.new_theater_button.clicked.connect(lambda: init_new_theater(obj))
     obj.open_film_list_button.clicked.connect(lambda: init_film_list(obj))
 
 
+#  initializing window with list of all films
 def init_film_list(obj):
     global film_list
     film_list = obj.init_film_list()
@@ -46,12 +50,14 @@ def init_film_list(obj):
     film_list.new_film_button.clicked.connect(lambda: init_adding_film(film_list))
 
 
+# getting and displaying all films
 def fill_film_table():
     global films
     films = model.get_request('get_film_data', ())
     film_list.setup_table(films)
 
 
+# initializing tab with list of all sessions
 def open_theater_tab(obj, theaters):
     index = obj.tableWidget_2.currentRow()
     name, theater_id = theaters[index][0], theaters[index][5]
@@ -67,6 +73,7 @@ def open_theater_tab(obj, theaters):
     obj.add_session_button.clicked.connect(lambda: init_session_add(obj, theater_id))
 
 
+# updating list of sessions in all tabs
 def update_sessions_data():
     for tab in tabs:
         theater_id = int(tab.objectName())
@@ -75,6 +82,7 @@ def update_sessions_data():
         theater_list.fill_theater_data(tab, film_names)
 
 
+# initializing window with information about exact sessions
 def init_session_window(obj, list_widget, sessions):
     index = list_widget.currentRow()
     session_id = sessions[index][1]
@@ -86,9 +94,10 @@ def init_session_window(obj, list_widget, sessions):
     session_window.delete_button.clicked.connect(lambda: delete_session(session_window, session_id))
 
 
-"""Generating seats template"""
+"""Generating room scheme"""
 
 
+# bind functions to buttons
 def bind_generating_template_buttons_logic(window):
     window.add_row.clicked.connect(lambda: add_row(window))
     window.remove_row.clicked.connect(lambda: remove_row(window))
@@ -102,6 +111,7 @@ def bind_generating_template_buttons_logic(window):
             button.clicked.connect(lambda: flick_state(window))
 
 
+# add rom to room
 def add_row(window):
     row = list()
     for i in range(len(window.buttons[0])):
@@ -112,6 +122,7 @@ def add_row(window):
     update_generated_window(window)
 
 
+# remove lowest row
 def remove_row(window):
     if len(window.buttons) > 1:
         for button in window.buttons[-1]:
@@ -120,6 +131,7 @@ def remove_row(window):
     update_generated_window(window)
 
 
+# make every row longer
 def add_column(window):
     for i, row in enumerate(window.buttons):
         new_button = window.init_button(len(row), i, '1')
@@ -128,6 +140,7 @@ def add_column(window):
     update_generated_window(window)
 
 
+# make every row shorter
 def remove_column(window):
     if len(window.buttons[0]) > 1:
         for row in window.buttons:
@@ -136,6 +149,7 @@ def remove_column(window):
     update_generated_window(window)
 
 
+# turn seat hidden or showing
 def flick_state(window):
     if window.sender().text() == '':
         window.sender().setText('X')
@@ -143,6 +157,7 @@ def flick_state(window):
         window.sender().setText('')
 
 
+# generate text_formatted scheme
 def generate_template(button_list):
     template = ''
     for row in button_list:
@@ -155,6 +170,7 @@ def generate_template(button_list):
     return template[:-1]
 
 
+# save all the generated schemes
 def save_templates(window):
     reply = QtWidgets.QMessageBox.question(window, "Внимание", "Сохранить введённые данные?",
                                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
@@ -164,6 +180,7 @@ def save_templates(window):
         window.close()
 
 
+# resizing room scheme window
 def update_generated_window(window):
     window.resize_window()
 
@@ -173,12 +190,14 @@ countries, cities, streets, = [None] * 3
 room_schemes = list()
 
 
+# initializing new theater form
 def init_new_theater(obj):
     new_theater_window = obj.open_new_theater_window()
     bind_new_theater_logic(new_theater_window)
     update_countries(new_theater_window)
 
 
+# bind functions to buttons and ect
 def bind_new_theater_logic(obj):
     obj.country_box.currentTextChanged.connect(lambda: update_cities(obj))
     obj.city_box.currentTextChanged.connect(lambda: update_streets(obj))
@@ -191,6 +210,7 @@ def bind_new_theater_logic(obj):
     obj.commit_button.clicked.connect(lambda: try_to_save_theater(obj))
 
 
+# refresh country list
 def update_countries(obj):
     global countries
     countries = model.get_request('get_countries', ())
@@ -200,6 +220,7 @@ def update_countries(obj):
     update_cities(obj)
 
 
+# refresh cities list
 def update_cities(obj):
     global cities
     country_box = obj.country_box
@@ -216,6 +237,7 @@ def update_cities(obj):
     update_streets(obj)
 
 
+# refresh streets list
 def update_streets(obj):
     global streets
     city_box = obj.city_box
@@ -230,6 +252,7 @@ def update_streets(obj):
     obj.update_streets_list(names)
 
 
+# save all given data
 def try_to_save_theater(widget):
     global theaters
     name = widget.name_input.text()
@@ -252,6 +275,7 @@ def try_to_save_theater(widget):
         widget.show_error_message(type(exception).__name__)
 
 
+# delete highlighted theaters
 def delete_theaters(indexes):
     if check_delete():
         for index in indexes:
@@ -263,6 +287,7 @@ def delete_theaters(indexes):
 """Adding and deleting films"""
 
 
+# init adding film form
 def init_adding_film(obj):
     new_film_window = obj.open_new_film_window()
     genres = model.get_request('get_genres', ())
@@ -271,6 +296,7 @@ def init_adding_film(obj):
     new_film_window.save_button.clicked.connect(lambda: try_to_save_film(new_film_window, genres))
 
 
+# delete highlighted films
 def delete_films(indexes):
     if check_delete():
         for index in indexes:
@@ -279,6 +305,7 @@ def delete_films(indexes):
     fill_film_table()
 
 
+# save film data from form
 def try_to_save_film(window, genres):
     global films
     title = window.title_input.text()
@@ -298,12 +325,13 @@ def try_to_save_film(window, genres):
         window.show_error_message(type(exception).__name__)
 
 
-"""Editing, adding adn deleting sessions"""
+"""Editing, adding and deleting sessions"""
 session_edit_window = None
 film_id, room_id, time, ticket_price = [None] * 4
 film_name, room_number = '', 0
 
 
+# init adding session form
 def init_session_add(obj, theaterId):
     global session_edit_window
     edit_window = obj.init_new_session_window_ui()
@@ -313,6 +341,7 @@ def init_session_add(obj, theaterId):
     edit_window.save_button.clicked.connect(try_to_save_new_session)
 
 
+# init editing session form
 def init_session_edit(session_window, session_id):
     global session_edit_window
     edit_window = session_window.init_edit_window_ui()
@@ -322,6 +351,7 @@ def init_session_edit(session_window, session_id):
     edit_window.save_button.clicked.connect(lambda: try_to_save_session_data(session_window, session_id))
 
 
+# getting film from list
 def get_new_film(window):
     choice_window = window.init_film_choice_window()
     film_list = model.get_request('get_film_data', ())
@@ -330,6 +360,7 @@ def get_new_film(window):
     table.itemDoubleClicked.connect(lambda: record_film_data(choice_window, table, film_list))
 
 
+# save data about picked film
 def record_film_data(window, table, film_list):
     global film_id, film_name
     film_id, film_name = film_list[table.currentRow()][:2]
@@ -337,6 +368,7 @@ def record_film_data(window, table, film_list):
     window.close()
 
 
+# getting room from list for new session
 def get_room(window, theater_id):
     choice_window = window.init_room_choice_window()
     room_list = model.get_request('get_rooms', (theater_id,))
@@ -347,6 +379,7 @@ def get_room(window, theater_id):
     choice_window.submit_button.clicked.connect(lambda: record_room_data(choice_window, list_widget, room_list))
 
 
+# getting room from list for session being edited
 def get_new_room(window, session_id):
     choice_window = window.init_room_choice_window()
     room_list = model.get_request('get_rooms_list', (session_id,))
@@ -357,12 +390,14 @@ def get_new_room(window, session_id):
     choice_window.submit_button.clicked.connect(lambda: record_room_data(choice_window, list_widget, room_list))
 
 
+# room showcase
 def open_room_scheme(window, list_widget, room_list):
     index = list_widget.currentRow()
     template = room_list[index][-1]
     window.show_room(template)
 
 
+# save data about picked room
 def record_room_data(window, list_widget, room_list):
     global room_id, room_number
     room_id, room_number = room_list[list_widget.currentRow()][:2]
@@ -370,10 +405,12 @@ def record_room_data(window, list_widget, room_list):
     window.close()
 
 
+# refresh picked data
 def update_displayed_data():
     session_edit_window.fill_data(film_name, room_number, 100, datetime.datetime.now())
 
 
+# save data about new session
 def try_to_save_new_session():
     ticket_price = session_edit_window.price_input.text()
     try:
@@ -388,6 +425,7 @@ def try_to_save_new_session():
         session_edit_window.show_error_message(type(exception).__name__)
 
 
+# save edited data about session
 def try_to_save_session_data(session_window, session_id):
     ticket_price = session_edit_window.price_input.text()
     try:
@@ -403,6 +441,7 @@ def try_to_save_session_data(session_window, session_id):
         session_edit_window.show_error_message(type(exception).__name__)
 
 
+# delete session record
 def delete_session(session_window, session_id):
     if check_delete():
         model.delete_session(session_id)
@@ -413,6 +452,7 @@ def delete_session(session_window, session_id):
 """Buying tickets logic"""
 
 
+# open ticket purchase form
 def init_purchase_window(session_window, session_id):
     seat_schema_window = session_window.init_seat_schema_window()
     template = model.get_request('get_seat_schema', (session_id,))
@@ -420,6 +460,7 @@ def init_purchase_window(session_window, session_id):
     bind_seat_window_logic(seat_schema_window, session_id)
 
 
+# bind functions to buttons
 def bind_seat_window_logic(window, session_id):
     for row in window.buttons:
         for button in row:
@@ -427,6 +468,7 @@ def bind_seat_window_logic(window, session_id):
     window.save_button.clicked.connect(lambda: save_template(session_id, window))
 
 
+# change seat from free to purchased ect
 def change_button_state(window):
     statuses = {"Free": "",
                 "Purchased": "background-color:green",
@@ -443,6 +485,7 @@ def change_button_state(window):
     button.setStyleSheet(statuses[new_status])
 
 
+# save data about purchases
 def save_template(session_id, window):
     template = ''
     template_mapping = {
