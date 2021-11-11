@@ -1,5 +1,7 @@
 import sqlite3
 import datetime
+import os
+import sys
 
 
 class UnfilledFields(Exception):
@@ -58,8 +60,14 @@ class DuplicateFilm(Exception):
     pass
 
 
+def resource_path(relative):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative)
+    return os.path.join(relative)
+
+
 def connect():
-    connection = sqlite3.connect('cinema.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+    connection = sqlite3.connect(resource_path('cinema.db'), detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     connection.execute("PRAGMA foreign_keys = ON")
     return connection
 

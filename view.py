@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QListWidget, \
 from PyQt5.QtCore import Qt
 
 import control
+import model
 
 import ui_main
 import ui_new_film
@@ -79,6 +80,7 @@ class MainWindow(QMainWindow, ui_main.Ui_MainWindow):
             self.edit_window.close()
         if hasattr(self, 'film_list'):
             self.film_list.close()
+        model.connection.close()
 
 
 class SessionWindow(QWidget, ui_session_window.Ui_Form):
